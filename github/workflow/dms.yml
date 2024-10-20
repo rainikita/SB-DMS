@@ -2,7 +2,7 @@ name: Deploy to ECR
 
 on:
   push:
-    branches: [pg-dms]
+    branches: [main]
   workflow_dispatch:
 
 env:
