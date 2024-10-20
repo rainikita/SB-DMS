@@ -1,0 +1,625 @@
+openapi: 3.0.0
+info:
+  title: API Documentation
+  version: 1.0.0
+servers:
+  - url: "https://dms-devcom"
+    description: "This is a development server URL"
+
+
+paths:
+  /vpas:
+    post:
+      summary: Generate a VPA
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                creds:
+                  type: string
+                  example: "abc"
+      responses:
+        '200':
+          description: VPA generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vpa_id:
+                    type: string
+                    example: "xyz@ybl.in"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Update vpas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vpa_id:
+                  type: string
+                  example: "xyz@ybl.in"
+                filter:
+                  type: string
+                  enum: [latest]
+                  example: "latest"
+      responses:
+        '200':
+          description: VPA history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      example: "VPA_GENERATED"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2024-09-01T12:00:00Z"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /vpas/get:
+    get:
+      summary: Get VPA list based on status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE]
+                  example: "ACTIVE"
+      responses:
+        '200':
+          description: VPA list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    vpa_id:
+                      type: string
+                      example: "xyz@ybl.in"
+        '500':
+          description: Internal server error
+
+  /vpas/summary:
+    post:
+      summary: Get VPA count summary
+      responses:
+        '200':
+          description: VPA count summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_vpas:
+                    type: integer
+                    example: 100
+        '500':
+          description: Internal server error
+
+  /merchants:
+    post:
+      summary: Onboard a Merchant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                creds:
+                  type: string
+                  example: "merchant_creds"
+      responses:
+        '200':
+          description: Merchant onboarded successfully
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Update Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                merchant_id:
+                  type: string
+                  example: "merchant_123"
+                filter:
+                  type: string
+                  enum: [latest]
+                  example: "latest"
+      responses:
+        '200':
+          description: Merchant history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      example: "MERCHANT_ONBOARDED"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2024-09-01T12:00:00Z"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /merchants/get:
+    post:
+      summary: Get Merchant list based on status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE]
+                  example: "ACTIVE"
+      responses:
+        '200':
+          description: Merchant list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    merchant_id:
+                      type: string
+                      example: "merchant_123"
+        '500':
+          description: Internal server error
+
+  /merchants/summary:
+    post:
+      summary: Get Merchant count summary
+      responses:
+        '200':
+          description: Merchant count summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_merchants:
+                    type: integer
+                    example: 100
+        '500':
+          description: Internal server error
+
+  /devices:
+    post:
+      summary: Onboard a Device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                creds:
+                  type: string
+                  example: "device_creds"
+      responses:
+        '200':
+          description: Device onboarded successfully
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Update Devices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: string
+                  example: "device_123"
+                filter:
+                  type: string
+                  enum: [latest]
+                  example: "latest"
+      responses:
+        '200':
+          description: Device history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      example: "DEVICE_ONBOARDED"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2024-09-01T12:00:00Z"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /devices/get:
+    get:
+      summary: Get Device list based on status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE]
+                  example: "ACTIVE"
+      responses:
+        '200':
+          description: Device list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    device_id:
+                      type: string
+                      example: "device_123"
+        '500':
+          description: Internal server error
+
+  /devices/summary:
+    post:
+      summary: Get Device count summary
+      responses:
+        '200':
+          description: Device count summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_devices:
+                    type: integer
+                    example: 100
+        '500':
+          description: Internal server error
+
+  /banks:
+    post:
+      summary: Onboard a Bank
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                creds:
+                  type: string
+                  example: "bank_creds"
+      responses:
+        '200':
+          description: Bank onboarded successfully
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Update Banks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bank_id:
+                  type: string
+                  example: "bank_123"
+                filter:
+                  type: string
+                  enum: [latest]
+                  example: "latest"
+      responses:
+        '200':
+          description: Bank history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      example: "BANK_ONBOARDED"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2024-09-01T12:00:00Z"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /banks/get:
+    post:
+      summary: Get Bank list based on status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE]
+                  example: "ACTIVE"
+      responses:
+        '200':
+          description: Bank list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    bank_id:
+                      type: string
+                      example: "bank_123"
+        '500':
+          description: Internal server error
+
+  /banks/summary:
+    post:
+      summary: Get Bank count summary
+      responses:
+        '200':
+          description: Bank count summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_banks:
+                    type: integer
+                    example: 100
+        '500':
+          description: Internal server error
+
+  /branches:
+    post:
+      summary: Onboard a Branch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                creds:
+                  type: string
+                  example: "branch_creds"
+      responses:
+        '200':
+          description: Branch onboarded successfully
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Get history of Branch ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                branch_id:
+                  type: string
+                  example: "branch_123"
+                filter:
+                  type: string
+                  enum: [latest]
+                  example: "latest"
+      responses:
+        '200':
+          description: Branch history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      example: "BRANCH_ONBOARDED"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2024-09-01T12:00:00Z"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /branches/get:
+    post:
+      summary: Get Branch list based on status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE]
+                  example: "ACTIVE"
+      responses:
+        '200':
+          description: Branch list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    branch_id:
+                      type: string
+                      example: "branch_123"
+        '500':
+          description: Internal server error
+
+  /branches/summary:
+    post:
+      summary: Get Branch count summary
+      responses:
+        '200':
+          description: Branch count summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_branches:
+                    type: integer
+                    example: 100
+        '500':
+          description: Internal server error
+
+  /sb:
+    post:
+      summary: Onboard an SB
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                creds:
+                  type: string
+                  example: "sb_creds"
+      responses:
+        '200':
+          description: SB onboarded successfully
+        '500':
+          description: Internal server error
+
+    patch:
+      summary: Update sb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sb_id:
+                  type: string
+                  example: "sb_123"
+                filter:
+                  type: string
+                  enum: [latest]
+                  example: "latest"
+      responses:
+        '200':
+          description: SB history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      example: "SB_ONBOARDED"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2024-09-01T12:00:00Z"
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /sb/get:
+    post:
+      summary: Get SB list based on status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE]
+                  example: "ACTIVE"
+      responses:
+        '200':
+          description: SB list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    sb_id:
+                      type: string
+                      example: "sb_123"
+        '500':
+          description: Internal server error
+
+  /sb/summary:
+    post:
+      summary: Get SB count summary
+      responses:
+        '200':
+          description: SB count summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_sb:
+                    type: integer
+                    example: 100
+        '500':
+          description: Internal server error
