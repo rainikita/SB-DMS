@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 env:
-  ECR_REPOSITORY: dms-ecr
   AWS_REGION: ap-south-1
 
 jobs:
@@ -35,101 +34,11 @@ jobs:
         echo "PG_PORT: $PG_PORT"
         echo "PG_DB_CERT: $PG_DB_CERT"
 
-    - name: Escape environment variables
-      shell: bash
-      env:
-        PG_HOST: ${{ secrets.PG_DB_HOST }}
-        PG_DB: ${{ secrets.PG_DB_NAME }}
-        PG_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
-        PG_USER: ${{ secrets.PG_DB_USERNAME }}
-        PG_PORT: ${{ secrets.PG_DB_PORT }}
-        PG_DB_CERT: ${{ secrets.PG_DB_CERT }}
+    - name: Execute Flyway Migration
       run: |
-        printf -v ESCAPED_PG_HOST '%q' "$PG_HOST"
-        printf -v ESCAPED_PG_DB '%q' "$PG_DB"
-        printf -v ESCAPED_PG_PASSWORD '%q' "$PG_PASSWORD"
-        printf -v ESCAPED_PG_USER '%q' "$PG_USER"
-        printf -v ESCAPED_PG_PORT '%q' "$PG_PORT"
-        printf -v ESCAPED_PG_DB_CERT '%q' "$PG_DB_CERT"
-        echo "ESCAPED_PG_HOST: $ESCAPED_PG_HOST"
-        echo "ESCAPED_PG_DB: $ESCAPED_PG_DB"
-        echo "ESCAPED_PG_PASSWORD: $ESCAPED_PG_PASSWORD"
-        echo "ESCAPED_PG_USER: $ESCAPED_PG_USER"
-        echo "ESCAPED_PG_PORT: $ESCAPED_PG_PORT"
-        echo "ESCAPED_PG_DB_CERT: $ESCAPED_PG_DB_CERT"
-        echo "ESCAPED_PG_HOST=$ESCAPED_PG_HOST" >> $GITHUB_ENV
-        echo "ESCAPED_PG_DB=$ESCAPED_PG_DB" >> $GITHUB_ENV
-        echo "ESCAPED_PG_PASSWORD=$ESCAPED_PG_PASSWORD" >> $GITHUB_ENV
-        echo "ESCAPED_PG_USER=$ESCAPED_PG_USER" >> $GITHUB_ENV
-        echo "ESCAPED_PG_PORT=$ESCAPED_PG_PORT" >> $GITHUB_ENV
-        echo "ESCAPED_PG_DB_CERT=$ESCAPED_PG_DB_CERT" >> $GITHUB_ENV
-
-    - name: Replace environment variables
-      shell: bash
-      env:
-        ESCAPED_PG_HOST: ${{ env.ESCAPED_PG_HOST }}
-        ESCAPED_PG_DB: ${{ env.ESCAPED_PG_DB }}
-        ESCAPED_PG_PASSWORD: ${{ env.ESCAPED_PG_PASSWORD }}
-        ESCAPED_PG_USER: ${{ env.ESCAPED_PG_USER }}
-        ESCAPED_PG_PORT: ${{ env.ESCAPED_PG_PORT }}
-        ESCAPED_PG_DB_CERT: ${{ env.ESCAPED_PG_DB_CERT }}
-      run: |
-        sed -i "s#pg_db_host#${ESCAPED_PG_HOST}#g" .env
-        sed -i "s#pg_db_name#${ESCAPED_PG_DB}#g" .env
-        sed -i "s#pg_db_pswd#${ESCAPED_PG_PASSWORD}#g" .env
-        sed -i "s#pg_db_user#${ESCAPED_PG_USER}#g" .env
-        sed -i "s#pg_db_port#${ESCAPED_PG_PORT}#g" .env
-        sed -i "s#pg_db_cert#${ESCAPED_PG_DB_CERT}#g" .env
-
-    - name: Download Flyway
-      run: |
-        wget -qO flyway.tar.gz https://flywaydb.org/download/community/flyway-commandline-latest-linux-x64.tar.gz
-        tar -xzf flyway.tar.gz
-        sudo mv flyway-*/ /usr/local/flyway
-
-    - name: Run Flyway Migrations
-      run: |
-        /usr/local/flyway/flyway migrate
-      env:
-        FLYWAY_URL: jdbc:postgresql://${{ secrets.PG_DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.PG_DB_NAME }}
-        FLYWAY_USER: ${{ secrets.PG_DB_USERNAME }}
-        FLYWAY_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
-        FLYWAY_CERTIFICATE: ${{ secrets.PG_DB_CERT }}
-
-  build-and-deploy:
-    name: Deployment
-    runs-on: ubuntu-latest
-    needs: flyway-migrate  # Ensures Flyway job finishes first
-
-    steps:
-    - name: Set up Git repository
-      uses: actions/checkout@v2
-
-    - name: Set short git commit SHA
-      id: commit
-      run: echo "::set-output name=short::$(git rev-parse --short HEAD)"
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Get previous image tag
-      id: prev-image
-      run: |
-        aws ecr list-images --repository-name ${{ env.ECR_REPOSITORY }} --region ${{ env.AWS_REGION }} --query 'imageIds[?imageTag!=`latest`]|[0].imageTag' --output text > prev_image_tag.txt
-        echo "PREV_IMAGE_TAG=$(cat prev_image_tag.txt)" >> $GITHUB_ENV
-
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: dms${{ github.run_number }}
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker run --rm \
+          -e FLYWAY_URL=jdbc:postgresql://${{ secrets.PG_DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.PG_DB_NAME }} \
+          -e FLYWAY_USER=${{ secrets.PG_DB_USERNAME }} \
+          -e FLYWAY_PASSWORD=${{ secrets.PG_DB_PASSWORD }} \
+          -v $(pwd)/db:/flyway/sql \
+          flyway/flyway:latest migrate
