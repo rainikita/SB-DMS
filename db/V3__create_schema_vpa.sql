@@ -6,3 +6,6 @@ ALTER COLUMN vevt TYPE dmsr.vevts USING vevt::dmsr.vevts;
 
 ALTER TABLE dmsr.vpa_v
 ALTER COLUMN vevt TYPE dmsr.vevts USING vevt::dmsr.vevts;
+
+ALTER TABLE dmsr.model
+RENAME COLUMN mevt TO mdevt;
