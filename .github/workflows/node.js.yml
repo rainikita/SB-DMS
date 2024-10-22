@@ -1,44 +1,24 @@
-name: Run Flyway Migrations
+name: Undo Last Commit
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
-
-env:
-  AWS_REGION: ap-south-1
+    branches:
+      - main  # or the branch you want
 
 jobs:
-  flyway-migrate:
-    name: Run Flyway Migrations
+  uncommit:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Set up Git repository
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Prepare environment variables
-      shell: bash
-      env:
-        PG_HOST: ${{ secrets.PG_DB_HOST }}
-        PG_DB: ${{ secrets.PG_DB_NAME }}
-        PG_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
-        PG_USER: ${{ secrets.PG_DB_USERNAME }}
-        PG_PORT: ${{ secrets.PG_DB_PORT }}
-        PG_DB_CERT: ${{ secrets.PG_DB_CERT }}
-      run: |
-        echo "PG_HOST: $PG_HOST"
-        echo "PG_DB: $PG_DB"
-        echo "PG_PASSWORD: $PG_PASSWORD"
-        echo "PG_USER: $PG_USER"
-        echo "PG_PORT: $PG_PORT"
-        echo "PG_DB_CERT: $PG_DB_CERT"
+      - name: Undo last commit (soft reset)
+        run: |
+          git reset --soft HEAD~1
+          git status
 
-    - name: Execute Flyway Migration
-      run: |
-        docker run --rm \
-          -e FLYWAY_URL=jdbc:postgresql://${{ secrets.PG_DB_HOST }}:${{ secrets.PG_DB_PORT }}/${{ secrets.PG_DB_NAME }}?currentSchema=dmsr \
-          -e FLYWAY_USER=${{ secrets.PG_DB_USERNAME }} \
-          -e FLYWAY_PASSWORD=${{ secrets.PG_DB_PASSWORD }} \
-          -v $(pwd)/db:/flyway/sql \
-          flyway/flyway:latest migrate
+      - name: Push the changes
+        run: |
+          git push origin main --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
